@@ -23,11 +23,13 @@ type PersonResponse struct {
 	Work    *string `json:"work,omitempty"`
 }
 
-func (p *Person) FromRequest(r *PersonRequest) {
-	p.Name = r.Name
-	p.Age = r.Age
-	p.Address = r.Address
-	p.Work = r.Work
+func FromRequest(r *PersonRequest) *Person {
+	return &Person{
+		Name:    r.Name,
+		Age:     r.Age,
+		Address: r.Address,
+		Work:    r.Work,
+	}
 }
 
 func (p *Person) ToResponse() PersonResponse {
@@ -38,4 +40,8 @@ func (p *Person) ToResponse() PersonResponse {
 		Address: p.Address,
 		Work:    p.Work,
 	}
+}
+
+func (p *PersonRequest) Validate() {
+	return
 }

@@ -22,31 +22,49 @@ func NewHandler(repository repository.Repository) *Handler {
 	}
 }
 
-func (h *Handler) WriteResponse(w http.ResponseWriter, response interface{}) {
+func (h *Handler) WriteResponse(
+	w http.ResponseWriter,
+	response interface{},
+	statusCode int,
+	additionalHeaders http.Header,
+) error {
 	w.Header().Set(ContentTypeKey, TypeApplicationJSON)
+	for key, values := range additionalHeaders {
+		for _, value := range values {
+			w.Header().Add(key, value)
+		}
+	}
+
 	responseBytes, err := json.Marshal(response)
 	if err != nil {
 		err = fmt.Errorf("json marshal: %w", err)
-		h.WriteError(w, err, http.StatusInternalServerError)
-		return
+		return err
 	}
+
+	w.WriteHeader(statusCode)
+	if len(responseBytes) == 0 {
+		return nil
+	}
+
 	_, err = w.Write(responseBytes)
 	if err != nil {
 		err = fmt.Errorf("http response write: %w", err)
-		h.WriteError(w, err, http.StatusInternalServerError)
-		return
+		return err
 	}
+
+	return nil
 }
 
 func (h *Handler) WriteError(w http.ResponseWriter, err error, code int) {
 	type errorResponse struct {
 		Message string `json:"message"`
 	}
-
 	response := new(errorResponse)
+
 	if err != nil {
 		response.Message = err.Error()
 	}
+
 	w.Header().Set(ContentTypeKey, TypeApplicationJSON)
 	w.WriteHeader(code)
 	_ = json.NewEncoder(w).Encode(response)

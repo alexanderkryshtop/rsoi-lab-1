@@ -30,7 +30,7 @@ func (p *PersonRepository) Create(model *model.Person) (uint64, error) {
 	var personID uint64
 
 	err := p.dbPool.QueryRow(context.Background(),
-		"INSERT INTO persons (name, age, address, work) VALUES($1, $2, $3, $4) RETURNING id",
+		"INSERT INTO tb_persons (name, age, address, work) VALUES($1, $2, $3, $4) RETURNING id",
 		model.Name, model.Age, model.Address, model.Work,
 	).Scan(&personID)
 
