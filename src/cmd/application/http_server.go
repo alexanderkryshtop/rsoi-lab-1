@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"rsoi-lab-1/internal/handlers"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -18,9 +19,10 @@ type httpServer struct {
 	shutdownTimeout time.Duration
 }
 
-func (a *App) newHTTPServer() (*httpServer, error) {
+func (a *App) newHTTPServer(handler *handlers.Handler) (*httpServer, error) {
 	mux := chi.NewMux()
 	mux.Mount("/", adminHandler())
+	mux.Get("/api/v1/persons", handler.GetAllPersons())
 	return &httpServer{
 		logger: a.Logger,
 		server: &http.Server{

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"rsoi-lab-1/cmd/application"
 	"rsoi-lab-1/cmd/configuration"
@@ -21,12 +22,13 @@ func main() {
 		log.Fatalf("failed to create logger: %v", err)
 	}
 
-	_, err = pgxpool.New(context.Background(), "localhost")
+	pool, err := createDBConnection()
 	if err != nil {
-		logger.Fatalln(err)
+		logger.Fatalf("failed to create database connection: %v", err)
 	}
+	defer pool.Close()
 
-	app := application.New(config, logger)
+	app := application.New(config, logger, pool)
 	if err := app.Run(); err != nil {
 		logger.Fatalf("application stopped with error: %+v\n", err)
 	} else {
@@ -37,7 +39,10 @@ func main() {
 func newLogger(cfg *configuration.Config) (*zap.SugaredLogger, error) {
 	zapConfig := zap.NewDevelopmentConfig()
 
-	zapConfig.Level.UnmarshalText([]byte(cfg.Logger.Level))
+	err := zapConfig.Level.UnmarshalText([]byte(cfg.Logger.Level))
+	if err != nil {
+		return nil, err
+	}
 	zapConfig.Encoding = cfg.Logger.Encoding
 	zapConfig.OutputPaths = cfg.Logger.OutputPaths
 	zapConfig.ErrorOutputPaths = cfg.Logger.ErrorOutputPaths
@@ -48,4 +53,19 @@ func newLogger(cfg *configuration.Config) (*zap.SugaredLogger, error) {
 		return nil, err
 	}
 	return logger.Sugar(), nil
+}
+
+func createDBConnection() (*pgxpool.Pool, error) {
+	connString := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
+		"postgres",
+		"postgres",
+		"localhost",
+		5432,
+		"persons",
+	)
+	pool, err := pgxpool.New(context.Background(), connString)
+	if err != nil {
+		return nil, err
+	}
+	return pool, err
 }
