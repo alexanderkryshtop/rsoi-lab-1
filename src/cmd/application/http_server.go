@@ -23,6 +23,7 @@ func (a *App) newHTTPServer(handler *handlers.Handler) (*httpServer, error) {
 	mux := chi.NewMux()
 	mux.Mount("/", adminHandler())
 	mux.Get("/api/v1/persons", handler.GetAllPersons())
+	mux.Get("/api/v1/persons/{id}", handler.GetPerson())
 	mux.Post("/api/v1/persons", handler.CreatePerson())
 	return &httpServer{
 		logger: a.Logger,

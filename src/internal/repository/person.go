@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"database/sql"
+	"github.com/jackc/pgx/v5"
 	"rsoi-lab-1/internal/model"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -11,7 +11,7 @@ import (
 type Repository interface {
 	Create(model *model.Person) (uint64, error)
 	GetAll() ([]model.Person, error)
-	Get(id uint64) (model.Person, error)
+	Get(id uint64) (*model.Person, error)
 	Update(model *model.Person) error
 	Delete(id uint64) error
 }
@@ -64,18 +64,18 @@ func (p *PersonRepository) GetAll() ([]model.Person, error) {
 	return people, nil
 }
 
-func (p *PersonRepository) Get(id uint64) (model.Person, error) {
-	var person model.Person
+func (p *PersonRepository) Get(id uint64) (*model.Person, error) {
+	person := new(model.Person)
 
 	err := p.dbPool.QueryRow(context.Background(),
-		"SELECT id, name, age, address, work FROM persons WHERE id=$1",
+		"SELECT id, name, age, address, work FROM tb_persons WHERE id=$1",
 		id).Scan(&person.ID, &person.Name, &person.Age, &person.Address, &person.Work)
 
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return model.Person{}, nil // Record not found
+		if err == pgx.ErrNoRows {
+			return nil, err
 		}
-		return model.Person{}, err
+		return nil, err
 	}
 
 	return person, nil

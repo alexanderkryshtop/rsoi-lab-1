@@ -3,9 +3,12 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5"
 	"io"
 	"net/http"
 	"rsoi-lab-1/internal/model"
+	"strconv"
 )
 
 func (h *Handler) GetAllPersons() func(w http.ResponseWriter, r *http.Request) {
@@ -29,6 +32,37 @@ func (h *Handler) GetAllPersons() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		err = h.WriteResponse(w, personResponses, http.StatusOK, nil)
+		if err != nil {
+			h.WriteError(w, err, http.StatusInternalServerError)
+		}
+	}
+}
+
+func (h *Handler) GetPerson() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		defer func(Body io.ReadCloser) {
+			_ = Body.Close()
+		}(r.Body)
+
+		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+		if err != nil {
+			err = fmt.Errorf("parse id from query to uint64: %w", err)
+			h.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
+
+		person, err := h.repository.Get(id)
+		if err != nil {
+			if err == pgx.ErrNoRows {
+				err = fmt.Errorf("person not found: %w", err)
+				h.WriteError(w, err, http.StatusNotFound)
+			} else {
+				h.WriteError(w, err, http.StatusInternalServerError)
+			}
+			return
+		}
+
+		err = h.WriteResponse(w, person.ToResponse(), http.StatusOK, nil)
 		if err != nil {
 			h.WriteError(w, err, http.StatusInternalServerError)
 		}
