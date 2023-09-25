@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"github.com/jackc/pgx/v5"
 	"rsoi-lab-1/internal/model"
 
@@ -72,7 +73,7 @@ func (p *PersonRepository) Get(id uint64) (*model.Person, error) {
 		id).Scan(&person.ID, &person.Name, &person.Age, &person.Address, &person.Work)
 
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, err
 		}
 		return nil, err
@@ -83,14 +84,14 @@ func (p *PersonRepository) Get(id uint64) (*model.Person, error) {
 
 func (p *PersonRepository) Update(person *model.Person) error {
 	_, err := p.dbPool.Exec(context.Background(),
-		"UPDATE persons SET name=$1, age=$2, address=$3, work=$4 WHERE id=$5",
+		"UPDATE tb_persons SET name=$1, age=$2, address=$3, work=$4 WHERE id=$5",
 		person.Name, person.Age, person.Address, person.Work, person.ID)
 	return err
 }
 
 func (p *PersonRepository) Delete(id uint64) error {
 	_, err := p.dbPool.Exec(context.Background(),
-		"DELETE FROM persons WHERE id=$1",
+		"DELETE FROM tb_persons WHERE id=$1",
 		id)
 	return err
 }

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
@@ -53,7 +54,7 @@ func (h *Handler) GetPerson() func(w http.ResponseWriter, r *http.Request) {
 
 		person, err := h.repository.Get(id)
 		if err != nil {
-			if err == pgx.ErrNoRows {
+			if errors.Is(err, pgx.ErrNoRows) {
 				err = fmt.Errorf("person not found: %w", err)
 				h.WriteError(w, err, http.StatusNotFound)
 			} else {
@@ -110,4 +111,40 @@ func (h *Handler) CreatePerson() func(w http.ResponseWriter, r *http.Request) {
 			h.WriteError(w, err, http.StatusInternalServerError)
 		}
 	}
+}
+
+func (h *Handler) DeletePerson() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		defer func(Body io.ReadCloser) {
+			_ = Body.Close()
+		}(r.Body)
+
+		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+		if err != nil {
+			err = fmt.Errorf("parse id from query to uint64: %w", err)
+			h.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
+
+		err = h.repository.Delete(id)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				err = fmt.Errorf("person not found: %w", err)
+				h.WriteError(w, err, http.StatusNotFound)
+			} else {
+				h.WriteError(w, err, http.StatusInternalServerError)
+			}
+			return
+		}
+
+		err = h.WriteResponse(w, nil, http.StatusNoContent, nil)
+
+		if err != nil {
+			h.WriteError(w, err, http.StatusInternalServerError)
+		}
+	}
+}
+
+func (h *Handler) UpdatePerson() func(w http.ResponseWriter, r *http.Request) {
+	return nil
 }

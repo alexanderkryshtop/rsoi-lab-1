@@ -35,15 +35,16 @@ func (h *Handler) WriteResponse(
 		}
 	}
 
+	w.WriteHeader(statusCode)
+
+	if response == nil {
+		return nil
+	}
+
 	responseBytes, err := json.Marshal(response)
 	if err != nil {
 		err = fmt.Errorf("json marshal: %w", err)
 		return err
-	}
-
-	w.WriteHeader(statusCode)
-	if len(responseBytes) == 0 {
-		return nil
 	}
 
 	_, err = w.Write(responseBytes)

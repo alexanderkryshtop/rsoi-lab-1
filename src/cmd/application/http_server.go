@@ -25,6 +25,7 @@ func (a *App) newHTTPServer(handler *handlers.Handler) (*httpServer, error) {
 	mux.Get("/api/v1/persons", handler.GetAllPersons())
 	mux.Get("/api/v1/persons/{id}", handler.GetPerson())
 	mux.Post("/api/v1/persons", handler.CreatePerson())
+	mux.Delete("/api/v1/persons/{id}", handler.DeletePerson())
 	return &httpServer{
 		logger: a.Logger,
 		server: &http.Server{
