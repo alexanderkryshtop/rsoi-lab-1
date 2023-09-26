@@ -13,6 +13,14 @@ services:
       - ./postgres/:/docker-entrypoint-initdb.d/
     ports:
       - "5432:5432"
+  server:
+    build: .
+    container_name: server
+    ports:
+      - "5051:5051"
+    command: ["./app", "-c", "./cmd/config_local.yaml"]
+    depends_on:
+      - postgres
 
 volumes:
   db-data:

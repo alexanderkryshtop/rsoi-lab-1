@@ -59,7 +59,7 @@ func createDBConnection() (*pgxpool.Pool, error) {
 	connString := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
 		"postgres",
 		"postgres",
-		"localhost",
+		"postgres",
 		5432,
 		"persons",
 	)
