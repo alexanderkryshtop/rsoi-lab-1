@@ -10,11 +10,11 @@ import (
 )
 
 type Repository interface {
-	Create(model *model.Person) (uint64, error)
+	Create(model *model.Person) (int32, error)
 	GetAll() ([]model.Person, error)
-	Get(id uint64) (*model.Person, error)
+	Get(id int32) (*model.Person, error)
 	Update(model *model.Person) error
-	Delete(id uint64) error
+	Delete(id int32) error
 }
 
 type PersonRepository struct {
@@ -27,8 +27,8 @@ func NewPersonRepository(dbPool *pgxpool.Pool) *PersonRepository {
 	}
 }
 
-func (p *PersonRepository) Create(model *model.Person) (uint64, error) {
-	var personID uint64
+func (p *PersonRepository) Create(model *model.Person) (int32, error) {
+	var personID int32
 
 	err := p.dbPool.QueryRow(context.Background(),
 		"INSERT INTO tb_persons (name, age, address, work) VALUES($1, $2, $3, $4) RETURNING id",
@@ -65,7 +65,7 @@ func (p *PersonRepository) GetAll() ([]model.Person, error) {
 	return people, nil
 }
 
-func (p *PersonRepository) Get(id uint64) (*model.Person, error) {
+func (p *PersonRepository) Get(id int32) (*model.Person, error) {
 	person := new(model.Person)
 
 	err := p.dbPool.QueryRow(context.Background(),
@@ -83,13 +83,14 @@ func (p *PersonRepository) Get(id uint64) (*model.Person, error) {
 }
 
 func (p *PersonRepository) Update(person *model.Person) error {
-	_, err := p.dbPool.Exec(context.Background(),
-		"UPDATE tb_persons SET name=$1, age=$2, address=$3, work=$4 WHERE id=$5",
-		person.Name, person.Age, person.Address, person.Work, person.ID)
+	var personID int32
+	err := p.dbPool.QueryRow(context.Background(),
+		"UPDATE tb_persons SET name=$1, age=$2, address=$3, work=$4 WHERE id=$5 RETURNING id",
+		person.Name, person.Age, person.Address, person.Work, person.ID).Scan(&personID)
 	return err
 }
 
-func (p *PersonRepository) Delete(id uint64) error {
+func (p *PersonRepository) Delete(id int32) error {
 	_, err := p.dbPool.Exec(context.Background(),
 		"DELETE FROM tb_persons WHERE id=$1",
 		id)

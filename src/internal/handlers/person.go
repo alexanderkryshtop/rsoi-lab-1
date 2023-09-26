@@ -45,14 +45,14 @@ func (h *Handler) GetPerson() func(w http.ResponseWriter, r *http.Request) {
 			_ = Body.Close()
 		}(r.Body)
 
-		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+		id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
-			err = fmt.Errorf("parse id from query to uint64: %w", err)
+			err = fmt.Errorf("parse id from query to int32: %w", err)
 			h.WriteError(w, err, http.StatusInternalServerError)
 			return
 		}
 
-		person, err := h.repository.Get(id)
+		person, err := h.repository.Get(int32(id))
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
 				err = fmt.Errorf("person not found: %w", err)
@@ -92,7 +92,17 @@ func (h *Handler) CreatePerson() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		person := model.FromRequest(personRequest)
+		person, err := model.FromRequest(personRequest)
+		var e *model.PersonValidationError
+		if err != nil {
+			if errors.As(err, &e) {
+				h.WriteErrorStruct(w, err, http.StatusBadRequest)
+			} else {
+				h.WriteError(w, err, http.StatusInternalServerError)
+			}
+			return
+		}
+
 		id, err := h.repository.Create(person)
 		if err != nil {
 			h.WriteError(w, err, http.StatusInternalServerError)
@@ -119,14 +129,14 @@ func (h *Handler) DeletePerson() func(w http.ResponseWriter, r *http.Request) {
 			_ = Body.Close()
 		}(r.Body)
 
-		id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+		id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 32)
 		if err != nil {
-			err = fmt.Errorf("parse id from query to uint64: %w", err)
+			err = fmt.Errorf("parse id from query to int32: %w", err)
 			h.WriteError(w, err, http.StatusInternalServerError)
 			return
 		}
 
-		err = h.repository.Delete(id)
+		err = h.repository.Delete(int32(id))
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
 				err = fmt.Errorf("person not found: %w", err)
@@ -146,5 +156,65 @@ func (h *Handler) DeletePerson() func(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UpdatePerson() func(w http.ResponseWriter, r *http.Request) {
-	return nil
+	return func(w http.ResponseWriter, r *http.Request) {
+		requestBody, err := io.ReadAll(r.Body)
+
+		defer func(body io.ReadCloser) {
+			_ = body.Close()
+		}(r.Body)
+
+		if err != nil {
+			err = fmt.Errorf("http request body read: %w", err)
+			h.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
+
+		id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 32)
+		if err != nil {
+			err = fmt.Errorf("parse id from query to int32: %w", err)
+			h.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
+
+		personRequest := new(model.PersonRequest)
+		err = json.Unmarshal(requestBody, personRequest)
+		if err != nil {
+			err = fmt.Errorf("json unmarshal: %w", err)
+			h.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
+
+		person, err := model.FromRequest(personRequest)
+		var e *model.PersonValidationError
+		if err != nil {
+			if errors.As(err, &e) {
+				h.WriteErrorStruct(w, err, http.StatusBadRequest)
+			} else {
+				h.WriteError(w, err, http.StatusInternalServerError)
+			}
+			return
+		}
+
+		person.ID = int32(id)
+
+		err = h.repository.Update(person)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				err = fmt.Errorf("person not found: %w", err)
+				h.WriteError(w, err, http.StatusNotFound)
+			} else {
+				h.WriteError(w, err, http.StatusInternalServerError)
+			}
+			return
+		}
+
+		err = h.WriteResponse(w, person.ToResponse(), http.StatusOK, nil)
+		if err != nil {
+			h.WriteError(w, err, http.StatusInternalServerError)
+		}
+
+		if err != nil {
+			h.WriteError(w, err, http.StatusInternalServerError)
+		}
+	}
 }

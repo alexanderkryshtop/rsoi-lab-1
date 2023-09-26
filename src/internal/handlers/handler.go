@@ -70,3 +70,9 @@ func (h *Handler) WriteError(w http.ResponseWriter, err error, code int) {
 	w.WriteHeader(code)
 	_ = json.NewEncoder(w).Encode(response)
 }
+
+func (h *Handler) WriteErrorStruct(w http.ResponseWriter, err error, code int) {
+	w.Header().Set(ContentTypeKey, TypeApplicationJSON)
+	w.WriteHeader(code)
+	_ = json.NewEncoder(w).Encode(err)
+}
