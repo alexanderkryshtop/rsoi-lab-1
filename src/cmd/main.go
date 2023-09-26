@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"rsoi-lab-1/cmd/application"
 	"rsoi-lab-1/cmd/configuration"
 
@@ -57,11 +58,11 @@ func newLogger(cfg *configuration.Config) (*zap.SugaredLogger, error) {
 
 func createDBConnection() (*pgxpool.Pool, error) {
 	connString := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
-		"postgres",
-		"postgres",
-		"postgres",
+		os.Getenv("POSTGRES_USER"),
+		os.Getenv("POSTGRES_PASSWORD"),
+		os.Getenv("POSTGRES_CONTAINER"),
 		5432,
-		"persons",
+		os.Getenv("POSTGRES_DB"),
 	)
 	pool, err := pgxpool.New(context.Background(), connString)
 	if err != nil {
