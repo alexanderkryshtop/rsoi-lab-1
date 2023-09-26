@@ -1,0 +1,14 @@
+logger:
+  level: info
+  encoding: console
+  outputPaths:
+    - stdout
+  errorOutputPaths:
+    - stderr
+  enableStackTrace: false
+
+application:
+  shutdownTimeout: 10s
+
+server:
+  port: 5051
