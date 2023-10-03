@@ -31,9 +31,9 @@ func main() {
 
 	app := application.New(config, logger, pool)
 	if err := app.Run(); err != nil {
-		logger.Fatalf("application stopped with error: %+v\n", err)
+		logger.Infof("application stopped with error: %+v\n", err)
 	} else {
-		logger.Fatalf("application stopped\n")
+		logger.Infof("application stopped\n")
 	}
 }
 
