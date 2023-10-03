@@ -31,7 +31,7 @@ func main() {
 
 	app := application.New(config, logger, pool)
 	if err := app.Run(); err != nil {
-		logger.Infof("application stopped with error: %+v\n", err)
+		logger.Infof("application stopped: %+v\n", err)
 	} else {
 		logger.Infof("application stopped\n")
 	}
@@ -60,7 +60,7 @@ func createDBConnection() (*pgxpool.Pool, error) {
 	connString := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
 		os.Getenv("POSTGRES_USER"),
 		os.Getenv("POSTGRES_PASSWORD"),
-		os.Getenv("POSTGRES_CONTAINER"),
+		os.Getenv("POSTGRES_HOST"),
 		5432,
 		os.Getenv("POSTGRES_DB"),
 	)
