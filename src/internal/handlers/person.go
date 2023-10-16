@@ -111,7 +111,7 @@ func (h *Handler) CreatePerson() func(w http.ResponseWriter, r *http.Request) {
 
 		err = h.WriteResponse(w, http.NoBody, http.StatusCreated,
 			map[string][]string{
-				"Located": {
+				"Location": {
 					fmt.Sprintf("/api/v1/persons/%d", id),
 				},
 			},
