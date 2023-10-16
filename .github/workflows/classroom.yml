@@ -26,11 +26,6 @@ jobs:
       - name: Test
         run: cd src/internal/repository && go test -v ./...
 
-      - name: Login to Yandex Cloud Container Registry
-        uses: yc-actions/yc-cr-login@v1
-        with:
-          yc-sa-json-credentials: ${{ secrets.YC_SA_JSON_CREDENTIALS }}
-
       - name: Run API Tests
         uses: matt-ball/newman-action@master
         with:
