@@ -68,5 +68,9 @@ func createDBConnection() (*pgxpool.Pool, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = pool.Ping(context.Background())
+	if err != nil {
+		return nil, err
+	}
 	return pool, err
 }
