@@ -1,7 +1,7 @@
 version: "3"
 services:
   postgres:
-    image: library/postgres:13
+    image: library/postgres:16
     container_name: postgres
     restart: on-failure
     environment:
@@ -13,6 +13,19 @@ services:
       - ./postgres/:/docker-entrypoint-initdb.d/
     ports:
       - "5432:5432"
+  server:
+    build: .
+    container_name: server
+    ports:
+      - "5051:5051"
+    command: ["./app", "-c", "./cmd/config_local.yaml"]
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: persons
+      POSTGRES_CONTAINER: postgres
+    depends_on:
+      - postgres
 
 volumes:
   db-data:
