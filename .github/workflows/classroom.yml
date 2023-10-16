@@ -54,9 +54,9 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             cd /home/${{ secrets.USERNAME }}/rsoi-lab-1
-            echo ${{ secrets.SSH_PASSWORD }} | sudo -S docker compose rm -f
-            echo ${{ secrets.SSH_PASSWORD }} | sudo -S docker compose pull
-            echo ${{ secrets.SSH_PASSWORD }} | sudo -S docker compose up --build -d
+            sudo -S docker compose rm -f
+            sudo -S docker compose pull
+            sudo -S docker compose up --build -d
 
       - name: Run API Tests
         uses: matt-ball/newman-action@master
