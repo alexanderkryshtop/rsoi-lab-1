@@ -26,6 +26,15 @@ jobs:
       - name: Test
         run: cd src/internal/repository && go test -v ./...
 
+      - name: Connect to VM
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: whoami
+
       - name: Run API Tests
         uses: matt-ball/newman-action@master
         with:
