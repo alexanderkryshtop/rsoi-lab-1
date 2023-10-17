@@ -13,9 +13,16 @@ services:
       - ./postgres/:/docker-entrypoint-initdb.d/
     ports:
       - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   server:
     build: .
     container_name: server
+    restart: on-failure
     ports:
       - "5051:5051"
     command: ["./app", "-c", "./cmd/config_local.yaml"]
