@@ -111,7 +111,7 @@ func (h *Handler) CreatePerson() func(w http.ResponseWriter, r *http.Request) {
 
 		err = h.WriteResponse(w, http.NoBody, http.StatusCreated,
 			map[string][]string{
-				"Located": {
+				"Location": {
 					fmt.Sprintf("/api/v1/persons/%d", id),
 				},
 			},
@@ -208,11 +208,18 @@ func (h *Handler) UpdatePerson() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err = h.WriteResponse(w, person.ToResponse(), http.StatusOK, nil)
+		person, err = h.repository.Get(int32(id))
 		if err != nil {
-			h.WriteError(w, err, http.StatusInternalServerError)
+			if errors.Is(err, pgx.ErrNoRows) {
+				err = fmt.Errorf("person not found: %w", err)
+				h.WriteError(w, err, http.StatusNotFound)
+			} else {
+				h.WriteError(w, err, http.StatusInternalServerError)
+			}
+			return
 		}
 
+		err = h.WriteResponse(w, person.ToResponse(), http.StatusOK, nil)
 		if err != nil {
 			h.WriteError(w, err, http.StatusInternalServerError)
 		}

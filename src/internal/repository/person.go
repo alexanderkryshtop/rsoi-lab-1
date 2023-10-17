@@ -85,7 +85,12 @@ func (p *PersonRepository) Get(id int32) (*model.Person, error) {
 func (p *PersonRepository) Update(person *model.Person) error {
 	var personID int32
 	err := p.dbPool.QueryRow(context.Background(),
-		"UPDATE tb_persons SET name=$1, age=$2, address=$3, work=$4 WHERE id=$5 RETURNING id",
+		`UPDATE tb_persons SET
+		name=COALESCE($1,name),
+		age=COALESCE($2,age),
+		address=COALESCE($3,address),
+		work=COALESCE($4,work)
+		WHERE id=$5 RETURNING id`,
 		person.Name, person.Age, person.Address, person.Work, person.ID).Scan(&personID)
 	return err
 }

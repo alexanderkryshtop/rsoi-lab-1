@@ -72,6 +72,7 @@ jobs:
 
       - name: Github auto grader mark
         uses: Romanow/google-sheet-autograder-marker@v1.0
+        continue-on-error: true
         with:
           google_token: ${{secrets.GOOGLE_API_KEY}}
           sheet_id: "1xkgjUX6Qmk7rdJG-QPOToav-HWWtthJjnShIKnw3oIY"
