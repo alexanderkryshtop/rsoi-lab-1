@@ -5,5 +5,3 @@ COPY src .
 RUN go mod download
 
 RUN go build -o app ./cmd
-
-CMD ["./app", "-c", "./cmd/config_local.yaml"]

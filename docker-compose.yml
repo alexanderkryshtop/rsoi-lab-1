@@ -32,7 +32,8 @@ services:
       POSTGRES_DB: persons
       POSTGRES_HOST: postgres
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
 volumes:
   db-data:
