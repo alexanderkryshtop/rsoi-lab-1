@@ -54,7 +54,6 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             cd /home/${{ secrets.USERNAME }}/rsoi-lab-1
-            sudo -S docker compose down -v
             sudo -S docker compose rm -f
             sudo -S docker compose pull
             sudo -S docker compose up --build -d
